@@ -1,0 +1,61 @@
+#!/bin/bash
+
+print_help() {
+    echo "md-numbering"
+    echo "USAGE: ./numbering <srcFile> <destFile> <startingLevel>"
+    echo "  <srcFile> (required)"
+    echo "    markdown file without numbered headings to use"
+    echo "  <destFile> (required)"
+    echo "    file the new content should be written to (will overwrite)"
+    echo "  <startingLevel> (optional, default = 2)"
+    echo "    level on which numbering will start, default excludes # header"
+    echo "EXAMPLE: ./numbering README-base.md README.md 2"
+}
+
+# validate input
+( [ "$1" == "-h" ] || [ "$1" == "--help" ] ) && print_help && exit 0
+( [ $# -lt 2 ] || [ $# -gt 3 ] ) && print_help && exit -1
+
+# init variables
+filename="$1"
+numberedFileName="$2"
+startLevel=2
+[ $# -eq 3 ] && startLevel=$3
+[ $startLevel -lt 1 ] && print_help && exit -1
+
+write_to_file() {
+    [ $# -eq 2 ] \
+        && echo "$1" > "$numberedFileName"\
+        || echo "$1" >> "$numberedFileName"
+}
+
+indentLevels=()
+currentIndentLevel=0
+write_header() {
+    headerPrefix="${1%% *}"
+    remainder="${1:${#headerPrefix}}"
+    newIndentLevel="${#headerPrefix}"
+
+    [ $newIndentLevel -gt $currentIndentLevel ] \
+        && indentLevels[$newIndentLevel]=1 \
+        || indentLevels[$newIndentLevel]=$(( ${indentLevels[$newIndentLevel]} + 1 ))
+
+    currentIndentLevel=$newIndentLevel
+    
+    numberString=""
+    [ $currentIndentLevel -ge $startLevel ] \
+        && numberString=" ${indentLevels[$startLevel]}"; \
+        for (( level=$startLevel+1; level<=${currentIndentLevel}; level++ )); do \
+            numberString="$numberString.${indentLevels[$level]}"; \
+        done; \
+        write_to_file "$headerPrefix$numberString$remainder" \
+        || write_to_file "$headerPrefix $remainder"
+}
+
+write_to_file "" 1
+
+IFS=''
+while read line; do
+    [ "${line:0:1}" == "#" ] && write_header "$line" || write_to_file "$line"
+done < $1
+
