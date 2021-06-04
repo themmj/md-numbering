@@ -27,9 +27,9 @@ To run the script on a markdown file:
 
 parameter      |required|default|meaning
 ---------------|--------|-------|-------
-<srcFile>      |required|-      |markdown file without numbered headings to use
-<destFile>     |required|-      |file the new content should be written to (will overwrite)
-<startingLevel>|optional|2      |level on which numbering will start, default excludes # header
+`srcFile`      |required|-      |markdown file without numbered headings to use
+`destFile`     |required|-      |file the new content should be written to (will overwrite)
+`startingLevel`|optional|2      |level on which numbering will start, default excludes # header
 
 ## Example
 
